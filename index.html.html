@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laptop Sale Calculator</title>
+<style>
+  :root{
+    --black:#111113;
+    --grey-900:#1c1c1e;
+    --grey-700:#48484a;
+    --grey-500:#8e8e93;
+    --grey-300:#d1d1d6;
+    --grey-200:#e5e5ea;
+    --grey-100:#f2f2f7;
+    --white:#ffffff;
+    --green:#1f8a44;
+    --red:#c73030;
+    --radius:14px;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--grey-100);color:var(--black);}
+  body{min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+  .wrap{max-width:640px;margin:0 auto;padding:32px 20px 80px;}
+
+  header{margin-bottom:28px;}
+  header h1{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin:0 0 4px;}
+  header p{margin:0;color:var(--grey-500);font-size:13.5px;}
+
+  .card{
+    background:var(--white);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--grey-500);
+    font-weight:600;
+    margin:0 0 14px;
+  }
+
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{display:block;font-size:13.5px;font-weight:500;color:var(--grey-700);margin-bottom:6px;}
+  .field input, .field select{
+    width:100%;
+    padding:11px 12px;
+    font-size:15px;
+    border-radius:10px;
+    border:1px solid var(--grey-300);
+    background:var(--grey-100);
+    color:var(--black);
+    outline:none;
+    -webkit-appearance:none;
+    appearance:none;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input::placeholder{color:var(--grey-500);}
+  .field input:focus, .field select:focus{
+    border-color:var(--black);
+    background:var(--white);
+  }
+  .field input.error{border-color:var(--red); background:#fdf1f1;}
+  .error-msg{color:var(--red);font-size:12px;margin-top:5px;display:none;}
+  .error-msg.show{display:block;}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .acc-row{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+    margin-bottom:14px;
+  }
+  .other-row{
+    display:flex;
+    gap:8px;
+    align-items:flex-end;
+    margin-bottom:10px;
+  }
+  .other-row .field{flex:1;margin-bottom:0;}
+  .other-row .field.name{flex:1.3;}
+  .icon-btn{
+    width:40px;height:40px;flex:none;
+    border-radius:10px;
+    border:1px solid var(--grey-300);
+    background:var(--grey-100);
+    color:var(--grey-700);
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease;
+  }
+  .icon-btn:hover{background:var(--grey-200);}
+  .add-link{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:13.5px;font-weight:600;color:var(--black);
+    background:none;border:none;cursor:pointer;padding:6px 0;
+  }
+  .add-link:hover{opacity:0.6;}
+  .add-link .plus{
+    width:20px;height:20px;border-radius:50%;background:var(--black);color:var(--white);
+    display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;
+  }
+
+  .btn-row{display:flex;gap:10px;margin-top:20px;}
+  .btn{
+    flex:1;
+    padding:14px;
+    border-radius:12px;
+    border:none;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:transform .08s ease, opacity .15s ease;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--black);color:var(--white);}
+  .btn-primary:hover{opacity:0.85;}
+  .btn-secondary{background:var(--grey-200);color:var(--black);}
+  .btn-secondary:hover{background:var(--grey-300);}
+
+  .summary{display:none;}
+  .summary.show{display:block;}
+
+  .result-item{
+    font-size:14.5px;
+    line-height:1.5;
+    margin-bottom:14px;
+  }
+  .result-item:last-child{margin-bottom:0;}
+  .result-title{font-weight:700;color:var(--black);}
+  .result-value{font-weight:400;color:var(--black);font-variant-numeric:tabular-nums;}
+  .result-header{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--grey-500);
+    font-weight:700;
+    margin:20px 0 12px;
+  }
+  .result-header:first-child{margin-top:0;}
+  .result-item.result-bullet{padding-left:14px;}
+  .result-item.result-total{
+    margin-top:6px;padding-top:14px;border-top:1px solid var(--grey-200);
+  }
+  .result-item.result-emphasis{
+    background:var(--grey-100);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .result-item.result-profit .result-value{color:var(--green);font-weight:700;}
+  .result-item.result-profit.negative .result-value{color:var(--red);}
+  .result-item.result-final{
+    background:var(--grey-100);
+    margin:6px -20px -20px;
+    padding:16px 20px;
+    border-radius:0 0 var(--radius) var(--radius);
+  }
+
+  .copy-btn{
+    width:100%;margin-top:14px;
+    padding:13px;border-radius:12px;border:1px solid var(--grey-300);
+    background:var(--white);color:var(--black);font-size:14.5px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:background .15s ease;
+  }
+  .copy-btn:hover{background:var(--grey-100);}
+  .copy-btn.copied{background:var(--black);color:var(--white);border-color:var(--black);}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--black);color:var(--white);padding:10px 18px;border-radius:20px;
+    font-size:13.5px;opacity:0;pointer-events:none;transition:all .25s ease;
+    box-shadow:var(--shadow);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:420px){
+    .row2{grid-template-columns:1fr;}
+    header h1{font-size:20px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Laptop Sale Calculator</h1>
+    <p>Work out true profit on a single sale, accessories included.</p>
+  </header>
+
+  <div class="card">
+    <h2>Sale Details</h2>
+    <div class="row2">
+      <div class="field">
+        <label for="invoice">Invoice Number</label>
+        <input type="text" id="invoice" placeholder="INV-1001">
+      </div>
+      <div class="field">
+        <label for="model">Model Number</label>
+        <input type="text" id="model" placeholder="Dell 5420">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="stockdate">Stock / Purchase Date</label>
+        <input type="date" id="stockdate">
+        <div class="error-msg" id="err-stockdate">Please select the stock / purchase date</div>
+      </div>
+      <div class="field">
+        <label for="saledate">Sale Date</label>
+        <input type="date" id="saledate">
+        <div class="error-msg" id="err-saledate">Please select the sale date</div>
+      </div>
+    </div>
+    <div class="field">
+      <label for="currency">Currency</label>
+      <select id="currency">
+        <option value="AED">AED — UAE Dirham</option>
+        <option value="PKR">PKR — Pakistani Rupee</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="purchase">Purchase Price</label>
+        <input type="number" id="purchase" placeholder="0.00" min="0" step="0.01">
+        <div class="error-msg" id="err-purchase">Enter a valid, non-negative amount</div>
+      </div>
+      <div class="field">
+        <label for="sale">Sale Price</label>
+        <input type="number" id="sale" placeholder="0.00" min="0" step="0.01">
+        <div class="error-msg" id="err-sale">Enter a valid, non-negative amount</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Accessories</h2>
+    <div class="acc-row row2">
+      <div class="field">
+        <label for="charger">Charger Price</label>
+        <input type="number" id="charger" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="bag">Bag Price</label>
+        <input type="number" id="bag" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="wiredmouse">Wired Mouse</label>
+        <input type="number" id="wiredmouse" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="wirelessmouse">Wireless Mouse</label>
+        <input type="number" id="wirelessmouse" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+
+    <div id="otherAccessories"></div>
+    <button type="button" class="add-link" id="addOther"><span class="plus">+</span> Add another accessory</button>
+  </div>
+
+  <div class="card">
+    <h2>Additional Charges</h2>
+    <div class="row2">
+      <div class="field">
+        <label for="service">Service Charges</label>
+        <input type="number" id="service" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="extra">Extra Charges</label>
+        <input type="number" id="extra" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" id="resetBtn">Reset</button>
+    <button class="btn btn-primary" id="calcBtn">Calculate</button>
+  </div>
+
+  <div class="card summary" id="summaryCard">
+    <h2>Final Result</h2>
+    <div id="resultItems"></div>
+    <button class="copy-btn" id="copyBtn">Copy Result</button>
+    <button class="copy-btn" id="whatsappBtn">Send on WhatsApp</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const otherWrap = document.getElementById('otherAccessories');
+  let otherCount = 0;
+
+  function addOtherRow(){
+    otherCount++;
+    const id = 'other-' + otherCount;
+    const row = document.createElement('div');
+    row.className = 'other-row';
+    row.dataset.id = id;
+    row.innerHTML = `
+      <div class="field name">
+        <label>Accessory Name</label>
+        <input type="text" class="other-name" placeholder="e.g. Laptop Stand">
+      </div>
+      <div class="field">
+        <label>Price</label>
+        <input type="number" class="other-price" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <button type="button" class="icon-btn remove-other" title="Remove">&times;</button>
+    `;
+    otherWrap.appendChild(row);
+    row.querySelector('.remove-other').addEventListener('click', () => {
+      row.remove();
+      calculate();
+    });
+    row.querySelector('.other-price').addEventListener('input', calculate);
+    row.querySelector('.other-name').addEventListener('input', calculate);
+  }
+  document.getElementById('addOther').addEventListener('click', addOtherRow);
+
+  function num(id){
+    const el = document.getElementById(id);
+    const v = parseFloat(el.value);
+    return isNaN(v) || v < 0 ? 0 : v;
+  }
+
+  function validateNonNegative(id, errId){
+    const el = document.getElementById(id);
+    const errEl = document.getElementById(errId);
+    const v = parseFloat(el.value);
+    const invalid = el.value !== '' && (isNaN(v) || v < 0);
+    el.classList.toggle('error', invalid);
+    if(errEl) errEl.classList.toggle('show', invalid);
+    return !invalid;
+  }
+
+  function validateRequiredDate(id, errId){
+    const el = document.getElementById(id);
+    const errEl = document.getElementById(errId);
+    const invalid = el.value === '';
+    el.classList.toggle('error', invalid);
+    if(errEl) errEl.classList.toggle('show', invalid);
+    return !invalid;
+  }
+
+  function fmt(n, currency){
+    const rounded = Math.round(n * 100) / 100;
+    const formatted = rounded.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    return currency + ' ' + formatted;
+  }
+
+  function fmtDate(value){
+    if(!value) return '—';
+    const parts = value.split('-');
+    if(parts.length !== 3) return value;
+    const [y, m, d] = parts;
+    return `${d}-${m}-${y}`;
+  }
+
+  function getAccessoryItems(currency){
+    const items = [];
+    function addIfPresent(label, id){
+      const v = parseFloat(document.getElementById(id).value);
+      if(!isNaN(v) && v > 0) items.push({title: label, value: fmt(v, currency)});
+    }
+    addIfPresent('Laptop Charger', 'charger');
+    addIfPresent('Laptop Bag', 'bag');
+    addIfPresent('Wired Mouse', 'wiredmouse');
+    addIfPresent('Wireless Mouse', 'wirelessmouse');
+
+    document.querySelectorAll('.other-row').forEach(row => {
+      const nameEl = row.querySelector('.other-name');
+      const priceEl = row.querySelector('.other-price');
+      const priceVal = parseFloat(priceEl.value);
+      if(!isNaN(priceVal) && priceVal > 0){
+        const title = nameEl.value.trim() || 'Other Accessory';
+        items.push({title, value: fmt(priceVal, currency)});
+      }
+    });
+
+    addIfPresent('Service Charges', 'service');
+    addIfPresent('Extra Charges', 'extra');
+
+    return items;
+  }
+
+  function calculate(){
+    const okPurchase = validateNonNegative('purchase','err-purchase');
+    const okSale = validateNonNegative('sale','err-sale');
+    const okStockDate = validateRequiredDate('stockdate','err-stockdate');
+    const okSaleDate = validateRequiredDate('saledate','err-saledate');
+    if(!okPurchase || !okSale || !okStockDate || !okSaleDate){
+      document.getElementById('summaryCard').classList.remove('show');
+      return false;
+    }
+
+    const currency = document.getElementById('currency').value;
+    const purchase = num('purchase');
+    const sale = num('sale');
+    const charger = num('charger');
+    const bag = num('bag');
+    const wiredmouse = num('wiredmouse');
+    const wirelessmouse = num('wirelessmouse');
+    const service = num('service');
+    const extra = num('extra');
+
+    let othersTotal = 0;
+    document.querySelectorAll('.other-price').forEach(el => {
+      const v = parseFloat(el.value);
+      if(!isNaN(v) && v > 0) othersTotal += v;
+    });
+
+    const accessoriesTotal = charger + bag + wiredmouse + wirelessmouse + othersTotal + service + extra;
+    const remaining = sale - accessoriesTotal;
+    const profit = remaining - purchase;
+    const sevenPercent = profit * 0.07;
+
+    const invoice = document.getElementById('invoice').value.trim() || '—';
+    const stockDateText = fmtDate(document.getElementById('stockdate').value);
+    const saleDateText = fmtDate(document.getElementById('saledate').value);
+    const model = document.getElementById('model').value.trim() || '—';
+    const accessoryItems = getAccessoryItems(currency);
+
+    const container = document.getElementById('resultItems');
+    container.innerHTML = '';
+
+    function appendItem(title, value, extraClasses){
+      const div = document.createElement('div');
+      div.className = 'result-item' + (extraClasses ? ' ' + extraClasses : '');
+      div.innerHTML = `<span class="result-title">${title}</span>: <span class="result-value">${value}</span>`;
+      container.appendChild(div);
+      return div;
+    }
+
+    appendItem('Invoice Number', invoice);
+    appendItem('Stock Date', stockDateText);
+    appendItem('Sale Date', saleDateText);
+    appendItem('Model Number', model);
+    appendItem('Laptop Purchase Price', fmt(purchase, currency));
+    appendItem('Laptop Sale Price', fmt(sale, currency));
+
+    if(accessoryItems.length){
+      const header = document.createElement('div');
+      header.className = 'result-header';
+      header.textContent = 'Accessories / Additional Costs';
+      container.appendChild(header);
+      accessoryItems.forEach(item => {
+        appendItem(item.title, item.value, 'result-bullet');
+      });
+    }
+
+    appendItem(service > 0 ? 'Total Accessories and Service Charges' : 'Total Accessories', fmt(accessoriesTotal, currency), 'result-total');
+    appendItem(service > 0 ? 'Remaining After Accessories and Service Charges' : 'Remaining After Accessories', fmt(remaining, currency), 'result-emphasis');
+    const profitEl = appendItem('Company Profit', fmt(profit, currency), 'result-profit');
+    profitEl.classList.toggle('negative', profit < 0);
+    appendItem('Total Commission', fmt(sevenPercent, currency), 'result-final');
+
+    document.getElementById('summaryCard').classList.add('show');
+    return true;
+  }
+
+  function reset(){
+    document.querySelectorAll('input').forEach(el => {
+      el.value = '';
+      el.classList.remove('error');
+    });
+    document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+    document.getElementById('currency').value = 'AED';
+    otherWrap.innerHTML = '';
+    otherCount = 0;
+    document.getElementById('resultItems').innerHTML = '';
+    document.getElementById('summaryCard').classList.remove('show');
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function fallbackCopy(text){
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '0';
+    textarea.style.width = '1px';
+    textarea.style.height = '1px';
+    textarea.style.padding = '0';
+    textarea.style.border = 'none';
+    textarea.style.outline = 'none';
+    textarea.style.boxShadow = 'none';
+    textarea.style.background = 'transparent';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+
+    const selection = document.getSelection();
+    const originalRange = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+
+    let success = false;
+    try{
+      success = document.execCommand('copy');
+    }catch(err){
+      success = false;
+    }
+
+    document.body.removeChild(textarea);
+    if(originalRange){
+      selection.removeAllRanges();
+      selection.addRange(originalRange);
+    }
+    return success;
+  }
+
+  function onCopySuccess(){
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.textContent = 'Copied ✓';
+    showToast('Copied successfully');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.textContent = 'Copy Result';
+    }, 1500);
+  }
+
+  function buildResultText(){
+    const currency = document.getElementById('currency').value;
+    const purchase = num('purchase');
+    const sale = num('sale');
+    const charger = num('charger');
+    const bag = num('bag');
+    const wiredmouse = num('wiredmouse');
+    const wirelessmouse = num('wirelessmouse');
+    const service = num('service');
+    const extra = num('extra');
+
+    let othersTotal = 0;
+    document.querySelectorAll('.other-price').forEach(el => {
+      const v = parseFloat(el.value);
+      if(!isNaN(v) && v > 0) othersTotal += v;
+    });
+
+    const accessoriesTotal = charger + bag + wiredmouse + wirelessmouse + othersTotal + service + extra;
+    const remaining = sale - accessoriesTotal;
+    const profit = remaining - purchase;
+    const sevenPercent = profit * 0.07;
+
+    const invoice = document.getElementById('invoice').value.trim() || '—';
+    const stockDateText = fmtDate(document.getElementById('stockdate').value);
+    const saleDateText = fmtDate(document.getElementById('saledate').value);
+    const model = document.getElementById('model').value.trim() || '—';
+    const accessoryItems = getAccessoryItems(currency);
+
+    const lines = [];
+    const htmlLines = [];
+
+    function pushLine(title, value, bullet){
+      const prefix = bullet ? '- ' : '';
+      lines.push(`${prefix}${title}: ${value}`);
+      htmlLines.push(`<div>${prefix}<strong>${title}</strong>: ${value}</div>`);
+    }
+
+    pushLine('Invoice Number', invoice);
+    pushLine('Stock Date', stockDateText);
+    pushLine('Sale Date', saleDateText);
+    pushLine('Model Number', model);
+    pushLine('Laptop Purchase Price', fmt(purchase, currency));
+    pushLine('Laptop Sale Price', fmt(sale, currency));
+
+    if(accessoryItems.length){
+      lines.push('Accessories / Additional Costs:');
+      htmlLines.push('<div><strong>Accessories / Additional Costs:</strong></div>');
+      accessoryItems.forEach(item => pushLine(item.title, item.value, true));
+    }
+
+    pushLine(service > 0 ? 'Total Accessories and Service Charges' : 'Total Accessories', fmt(accessoriesTotal, currency));
+    pushLine(service > 0 ? 'Remaining After Accessories and Service Charges' : 'Remaining After Accessories', fmt(remaining, currency));
+    pushLine('Company Profit', fmt(profit, currency));
+    pushLine('Total Commission', fmt(sevenPercent, currency));
+
+    const plainText = lines.join('\n\n');
+    const htmlText = htmlLines.join('<div>&nbsp;</div>');
+
+    return { plainText, htmlText: `<div>${htmlText}</div>` };
+  }
+
+  function copyResult(){
+    const { plainText, htmlText } = buildResultText();
+
+    if(navigator.clipboard && window.ClipboardItem && window.isSecureContext){
+      try{
+        const item = new ClipboardItem({
+          'text/plain': new Blob([plainText], {type:'text/plain'}),
+          'text/html': new Blob([htmlText], {type:'text/html'})
+        });
+        navigator.clipboard.write([item]).then(() => {
+          onCopySuccess();
+        }).catch(() => {
+          fallbackTextCopy(plainText);
+        });
+        return;
+      }catch(err){
+        fallbackTextCopy(plainText);
+        return;
+      }
+    }
+    fallbackTextCopy(plainText);
+  }
+
+  function fallbackTextCopy(plainText){
+    if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){
+      navigator.clipboard.writeText(plainText).then(() => {
+        onCopySuccess();
+      }).catch(() => {
+        fallbackCopy(plainText);
+        onCopySuccess();
+      });
+    }else{
+      fallbackCopy(plainText);
+      onCopySuccess();
+    }
+  }
+
+  function sendOnWhatsApp(){
+    const { plainText } = buildResultText();
+    const phone = '971567398060';
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(plainText)}`;
+    window.open(url, '_blank');
+  }
+
+  // Real-time calculation on relevant inputs
+  document.querySelectorAll('input[type="number"], input[type="date"], #currency').forEach(el => {
+    el.addEventListener('input', calculate);
+    el.addEventListener('change', calculate);
+  });
+
+  document.getElementById('calcBtn').addEventListener('click', calculate);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    if(calculate()){
+      copyResult();
+    }else{
+      showToast('Please fill required fields before copying');
+    }
+  });
+  document.getElementById('whatsappBtn').addEventListener('click', () => {
+    if(calculate()){
+      sendOnWhatsApp();
+    }else{
+      showToast('Please fill required fields before sending');
+    }
+  });
+})();
+</script>
+</body>
+</html>
